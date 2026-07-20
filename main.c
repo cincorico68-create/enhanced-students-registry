@@ -12,13 +12,14 @@ int main(void) {
         printf("3. Search by ID\n");
         printf("4. Search by Major\n");
         printf("5. Search by GPA Threshold\n");
-        printf("6. Save & Exit\n");
+        printf("6. Delete Student\n");
+        printf("7. Save & Exit\n");
         printf("===================================\n");
         printf("Choice: ");
         
         if (scanf("%d", &choice) != 1) {
             printf("Please enter a valid menu number.\n");
-            while(getchar() != '\n'); // Clear buffer
+            while(getchar() != '\n'); 
             choice = 0;
             continue;
         }
@@ -29,10 +30,11 @@ int main(void) {
             case 3: searchStudentByID(); break;
             case 4: searchStudentByMajor(); break;
             case 5: searchStudentByGPA(); break;
-            case 6: saveStudentsToFile(); break;
+            case 6: deleteStudent(); break;
+            case 7: saveStudentsToFile(); break;
             default: printf("Invalid choice. Try again.\n");
         }
-    } while (choice != 6);
+    } while (choice != 7);
     
     printf("Goodbye!\n");
     return 0;
