@@ -1,41 +1,59 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "student_registry.h"
+
+static int isStrictDigits(const char *str) {
+    if (*str == '\0') return 0;
+    while (*str) {
+        if (!isdigit((unsigned char)*str)) return 0;
+        str++;
+    }
+    return 1;
+}
 
 int main(void) {
     loadStudentsFromFile();
     int choice;
-    
-    do {
-        printf("\n===== STUDENT REGISTRY SYSTEM =====\n");
-        printf("1. Add Student\n");
-        printf("2. Display All Students\n");
-        printf("3. Search by ID\n");
-        printf("4. Search by Major\n");
-        printf("5. Search by GPA Threshold\n");
-        printf("6. Delete Student\n");
-        printf("7. Save & Exit\n");
-        printf("===================================\n");
-        printf("Choice: ");
-        
-        if (scanf("%d", &choice) != 1) {
-            printf("Please enter a valid menu number.\n");
-            while(getchar() != '\n'); 
-            choice = 0;
-            continue;
-        }
+    char input[50];
 
-        switch(choice) {
-            case 1: addStudent(); break;
-            case 2: displayAllStudents(); break;
-            case 3: searchStudentByID(); break;
-            case 4: searchStudentByMajor(); break;
-            case 5: searchStudentByGPA(); break;
-            case 6: deleteStudent(); break;
-            case 7: saveStudentsToFile(); break;
-            default: printf("Invalid choice. Try again.\n");
-        }
-    } while (choice != 7);
-    
+menu:
+    printf("\n===== STUDENT REGISTRY SYSTEM =====\n");
+    printf("1. Add Student\n");
+    printf("2. Display All Students\n");
+    printf("3. Search by ID\n");
+    printf("4. Search by Major\n");
+    printf("5. Search by GPA Threshold\n");
+    printf("6. Save & Exit\n");
+    printf("===================================\n");
+    printf("Choice: ");
+
+    if (fgets(input, sizeof(input), stdin) == NULL) {
+        goto menu;
+    }
+
+    input[strcspn(input, "\r\n")] = '\0';
+
+    if (!isStrictDigits(input)) {
+        printf("Invalid choice. Please enter digits only (no + or -).\n");
+        goto menu;
+    }
+
+    choice = atoi(input);
+
+    switch (choice) {
+        case 1: addStudent(); goto menu;
+        case 2: displayAllStudents(); goto menu;
+        case 3: searchStudentByID(); goto menu;
+        case 4: searchStudentByMajor(); goto menu;
+        case 5: searchStudentByGPA(); goto menu;
+        case 6: saveStudentsToFile(); break;
+        default: 
+            printf("Invalid choice. Try again.\n");
+            goto menu;
+    }
+
     printf("Goodbye!\n");
     return 0;
 }
