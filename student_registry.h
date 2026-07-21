@@ -18,7 +18,6 @@ void displayAllStudents(void);
 void searchStudentByID(void);
 void searchStudentByMajor(void);
 void searchStudentByGPA(void);
-void deleteStudent(void);
 void saveStudentsToFile(void);
 void loadStudentsFromFile(void);
 
