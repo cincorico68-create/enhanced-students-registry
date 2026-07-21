@@ -1,12 +1,52 @@
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <string.h>
-#include <strings.h> 
+#include <strings.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "student_registry.h"
 
 static Student registry[MAX_STUDENTS];
 static int studentCount = 0;
 static const char* filename = "students.dat";
+
+static int isStrictDigits(const char *str) {
+    if (*str == '\0') return 0;
+    while (*str) {
+        if (!isdigit((unsigned char)*str)) return 0;
+        str++;
+    }
+    return 1;
+}
+
+static int readStrictInt(int *out) {
+    char buffer[50];
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) return 0;
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+
+    if (!isStrictDigits(buffer)) {
+        return 0;
+    }
+
+    *out = atoi(buffer);
+    return 1;
+}
+
+static int readStrictFloat(float *out) {
+    char buffer[50];
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) return 0;
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+
+    if (buffer[0] == '\0') return 0;
+
+    if (strchr(buffer, '+') || strchr(buffer, '-')) return 0;
+
+    char *endptr;
+    *out = strtof(buffer, &endptr);
+    if (*endptr != '\0' || endptr == buffer) return 0;
+
+    return 1;
+}
 
 void addStudent(void) {
     if (studentCount >= MAX_STUDENTS) {
@@ -15,33 +55,32 @@ void addStudent(void) {
     }
     
     Student s;
+    
     printf("\nEnter ID: "); 
-    if (scanf("%d", &s.id) != 1) {
-        printf("Invalid input.\n");
-        while(getchar() != '\n'); 
+    if (!readStrictInt(&s.id)) {
+        printf("Invalid input. Enter digits only.\n");
         return;
     }
-    getchar(); 
     
     printf("Enter Name: "); 
-    fgets(s.name, sizeof(s.name), stdin); 
-    s.name[strcspn(s.name, "\n")] = 0; 
+    if (fgets(s.name, sizeof(s.name), stdin) != NULL) {
+        s.name[strcspn(s.name, "\r\n")] = '\0'; 
+    }
     
     printf("Enter Major: "); 
-    fgets(s.major, sizeof(s.major), stdin); 
-    s.major[strcspn(s.major, "\n")] = 0; 
+    if (fgets(s.major, sizeof(s.major), stdin) != NULL) {
+        s.major[strcspn(s.major, "\r\n")] = '\0'; 
+    }
     
     printf("Enter GPA: "); 
-    if (scanf("%f", &s.gpa) != 1) {
-        printf("Invalid input.\n");
-        while(getchar() != '\n');
+    if (!readStrictFloat(&s.gpa)) {
+        printf("Invalid input. Enter numbers only (no signs like + or -).\n");
         return;
     }
     
     printf("Enter Credits: "); 
-    if (scanf("%d", &s.credits) != 1) {
-        printf("Invalid input.\n");
-        while(getchar() != '\n');
+    if (!readStrictInt(&s.credits)) {
+        printf("Invalid input. Enter digits only (no signs like + or -).\n");
         return;
     }
     
@@ -55,7 +94,7 @@ void displayAllStudents(void) {
         return; 
     }
     printf("\n--- Student Registry (%d total) ---\n", studentCount);
-    for(int i = 0; i < studentCount; i++) {
+    for (int i = 0; i < studentCount; i++) {
         printf("[%d] %s | Major: %s | GPA: %.2f | Credits: %d\n", 
             registry[i].id, registry[i].name, registry[i].major, registry[i].gpa, registry[i].credits);
     }
@@ -64,9 +103,8 @@ void displayAllStudents(void) {
 void searchStudentByID(void) {
     int searchId;
     printf("\nEnter Student ID to search: ");
-    if (scanf("%d", &searchId) != 1) {
-        printf("Invalid input.\n");
-        while(getchar() != '\n');
+    if (!readStrictInt(&searchId)) {
+        printf("Invalid input. Enter digits only (no signs like + or -).\n");
         return;
     }
     
@@ -86,9 +124,9 @@ void searchStudentByID(void) {
 void searchStudentByMajor(void) {
     char searchMajor[50];
     printf("\nEnter Major to search: ");
-    getchar(); 
-    fgets(searchMajor, sizeof(searchMajor), stdin);
-    searchMajor[strcspn(searchMajor, "\n")] = 0;
+    if (fgets(searchMajor, sizeof(searchMajor), stdin) != NULL) {
+        searchMajor[strcspn(searchMajor, "\r\n")] = '\0';
+    }
 
     int foundCount = 0;
     printf("\nSearch Results for Major '%s':\n", searchMajor);
@@ -105,9 +143,8 @@ void searchStudentByMajor(void) {
 void searchStudentByGPA(void) {
     float minGpa;
     printf("\nEnter minimum GPA threshold: ");
-    if (scanf("%f", &minGpa) != 1) {
-        printf("Invalid input.\n");
-        while(getchar() != '\n');
+    if (!readStrictFloat(&minGpa)) {
+        printf("Invalid input. Enter numbers only (no signs like + or -).\n");
         return;
     }
 
@@ -121,41 +158,6 @@ void searchStudentByGPA(void) {
         }
     }
     if (foundCount == 0) printf("No students match or exceed this GPA.\n");
-}
-
-void deleteStudent(void) {
-    if (studentCount == 0) {
-        printf("\nRegistry is empty.\n");
-        return;
-    }
-
-    int targetId;
-    printf("\nEnter Student ID to delete: ");
-    if (scanf("%d", &targetId) != 1) {
-        printf("Invalid input.\n");
-        while(getchar() != '\n');
-        return;
-    }
-
-    int foundIndex = -1;
-    for (int i = 0; i < studentCount; i++) {
-        if (registry[i].id == targetId) {
-            foundIndex = i;
-            break;
-        }
-    }
-
-    if (foundIndex == -1) {
-        printf("Student ID %d not found.\n", targetId);
-        return;
-    }
-
-    for (int i = foundIndex; i < studentCount - 1; i++) {
-        registry[i] = registry[i + 1];
-    }
-    studentCount--;
-
-    printf("Student ID %d deleted. Save & Exit to record changes to file.\n", targetId);
 }
 
 void saveStudentsToFile(void) {
@@ -188,7 +190,7 @@ void loadStudentsFromFile(void) {
     studentCount = 0; 
 
     while (fgets(line, sizeof(line), file) && studentCount < MAX_STUDENTS) {
-        line[strcspn(line, "\n")] = 0;
+        line[strcspn(line, "\r\n")] = '\0';
         if (strlen(line) == 0) continue;
 
         char *token = strtok(line, "|");
