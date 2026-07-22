@@ -36,7 +36,7 @@ menu:
     input[strcspn(input, "\r\n")] = '\0';
 
     if (!isStrictDigits(input)) {
-        printf("Invalid choice. Please enter digits only (no + or -).\n");
+        printf("Invalid choice.\n");
         goto menu;
     }
 
